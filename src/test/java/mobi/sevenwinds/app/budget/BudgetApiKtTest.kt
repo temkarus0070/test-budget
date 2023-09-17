@@ -2,6 +2,7 @@ package mobi.sevenwinds.app.budget
 
 import io.restassured.RestAssured
 import mobi.sevenwinds.common.ServerTest
+import mobi.sevenwinds.common.addRecord
 import mobi.sevenwinds.common.jsonBody
 import mobi.sevenwinds.common.toResponse
 import org.jetbrains.exposed.sql.deleteAll
@@ -74,14 +75,5 @@ class BudgetApiKtTest : ServerTest() {
             .jsonBody(BudgetRecord(2020, 15, 5, BudgetType.Приход))
             .post("/budget/add")
             .then().statusCode(400)
-    }
-
-    private fun addRecord(record: BudgetRecord) {
-        RestAssured.given()
-            .jsonBody(record)
-            .post("/budget/add")
-            .toResponse<BudgetRecord>().let { response ->
-                Assert.assertEquals(record, response)
-            }
     }
 }

@@ -6,6 +6,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
 import io.restassured.RestAssured
+import io.restassured.parsing.Parser
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.BeforeAll
 import java.util.concurrent.TimeUnit
@@ -33,7 +34,7 @@ open class ServerTest {
                 })
                 server.start()
                 serverStarted = true
-
+                RestAssured.defaultParser = Parser.JSON;
                 RestAssured.baseURI = "http://localhost"
                 RestAssured.port = server.environment.config.property("ktor.deployment.port").getString().toInt()
                 RestAssured.enableLoggingOfRequestAndResponseIfValidationFails()
