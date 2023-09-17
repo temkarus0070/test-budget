@@ -32,21 +32,21 @@ object BudgetService {
     suspend fun getYearStats(param: BudgetYearParam): BudgetYearStatsResponse = withContext(Dispatchers.IO) {
         transaction {
 
+            var totalQuery = (BudgetTable leftJoin AuthorTable).select { BudgetTable.year eq param.year }
             var query = (BudgetTable leftJoin AuthorTable).select { BudgetTable.year eq param.year }
                 .orderBy(BudgetTable.month to SortOrder.ASC, BudgetTable.amount to SortOrder.DESC)
                 .limit(param.limit, param.offset)
-            query = when {
-                param.fio != null -> query
+            if (param.fio != null) {
+                query = query
                     .adjustWhere { AuthorTable.fio.upperCase() eq param.fio.toUpperCase() }
+                totalQuery = totalQuery.adjustWhere { AuthorTable.fio.upperCase() eq param.fio.toUpperCase() }
 
-                else -> query
             }
-
-            val total = query.count()
             val data = BudgetEntity.wrapRows(query).map { it.toBudgetAuthorRecord() }
 
             val sumByType = data.groupBy { it.type.name }.mapValues { it.value.sumOf { v -> v.amount } }.toMutableMap()
 
+            val total = totalQuery.count()
             for (value in BudgetType.values()) {
                 if (sumByType.get(value.name) == null) {
                     sumByType[value.name] = 0;

@@ -87,6 +87,48 @@ class AuthorApiKtTest : ServerTest() {
     }
 
     @Test
+    fun testAuthorRecordsPagination() {
+        addAuthorRecords()
+
+
+        RestAssured.given()
+            .queryParam("limit", 1)
+            .queryParam("offset", 0)
+            .queryParam("fio", "pupkin")
+            .get("/budget/year/2020/stats")
+            .toResponse<BudgetYearStatsResponse>().let { response ->
+                println("${response.total} / ${response.items} / ${response.totalByType}")
+
+                Assert.assertEquals(2, response.total)
+                Assert.assertEquals(1, response.items.size)
+                Assert.assertEquals(200, response.totalByType[BudgetType.Приход.name])
+                Assert.assertEquals(0, response.totalByType[BudgetType.Расход.name])
+                Assert.assertTrue(response.items.all {
+                    it.authorFio.equals(author?.fio) and (it.authorCreateDateTime?.equals
+                        (author?.createTimestamp) == true)
+                })
+            }
+
+        RestAssured.given()
+            .queryParam("limit", 1)
+            .queryParam("offset", 0)
+            .queryParam("fio", "PUPKIN")
+            .get("/budget/year/2020/stats")
+            .toResponse<BudgetYearStatsResponse>().let { response ->
+                println("${response.total} / ${response.items} / ${response.totalByType}")
+
+                Assert.assertEquals(2, response.total)
+                Assert.assertEquals(1, response.items.size)
+                Assert.assertEquals(200, response.totalByType[BudgetType.Приход.name])
+                Assert.assertEquals(0, response.totalByType[BudgetType.Расход.name])
+                Assert.assertTrue(response.items.all {
+                    it.authorFio.equals(author?.fio) and (it.authorCreateDateTime?.equals
+                        (author?.createTimestamp) == true)
+                })
+            }
+    }
+
+    @Test
     fun testRecordsWithoutAuthor() {
         addAuthorRecords()
         RestAssured.given()
