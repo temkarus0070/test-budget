@@ -45,7 +45,13 @@ object BudgetService {
             val total = query.count()
             val data = BudgetEntity.wrapRows(query).map { it.toBudgetAuthorRecord() }
 
-            val sumByType = data.groupBy { it.type.name }.mapValues { it.value.sumOf { v -> v.amount } }
+            val sumByType = data.groupBy { it.type.name }.mapValues { it.value.sumOf { v -> v.amount } }.toMutableMap()
+
+            for (value in BudgetType.values()) {
+                if (sumByType.get(value.name) == null) {
+                    sumByType[value.name] = 0;
+                }
+            }
 
             return@transaction BudgetYearStatsResponse(
                 total = total, totalByType = sumByType, items = data

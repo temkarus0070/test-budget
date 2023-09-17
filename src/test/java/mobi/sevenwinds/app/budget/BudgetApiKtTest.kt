@@ -10,7 +10,7 @@ import org.junit.Assert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class AuthorApiKtTest : ServerTest() {
+class BudgetApiKtTest : ServerTest() {
 
     @BeforeEach
     internal fun setUp() {
@@ -36,6 +36,7 @@ class AuthorApiKtTest : ServerTest() {
                 Assert.assertEquals(5, response.total)
                 Assert.assertEquals(5, response.items.size)
                 Assert.assertEquals(105, response.totalByType[BudgetType.Приход.name])
+                Assert.assertEquals(0, response.totalByType[BudgetType.Расход.name])
             }
     }
 
