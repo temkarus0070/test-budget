@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class AuthorApiKtTest : ServerTest() {
-    private var author: AuthorRecord? = null;
+    private var author: AuthorRecord? = null
 
     @BeforeEach
     internal fun setUp() {
@@ -24,7 +24,7 @@ class AuthorApiKtTest : ServerTest() {
             BudgetTable.deleteAll()
             AuthorTable.deleteAll()
 
-            author = addAuthor("PUPKIN");
+            author = addAuthor("PUPKIN")
             addRecord(BudgetRecord(2020, 5, 100, BudgetType.Приход))
             addRecord(BudgetRecord(2020, 5, 500, BudgetType.Приход))
         }
@@ -83,6 +83,67 @@ class AuthorApiKtTest : ServerTest() {
                     it.authorFio.equals(author?.fio) and (it.authorCreateDateTime?.equals
                         (author?.createTimestamp) == true)
                 })
+            }
+    }
+
+    @Test
+    fun testAuthorRecordsWithOnlyPartOfFioRequested() {
+        addAuthorRecords()
+        RestAssured.given()
+            .queryParam("limit", 5)
+            .queryParam("offset", 0)
+            .queryParam("fio", "pup")
+            .get("/budget/year/2020/stats")
+            .toResponse<BudgetYearStatsResponse>().let { response ->
+                println("${response.total} / ${response.items} / ${response.totalByType}")
+                Assert.assertEquals(2, response.total)
+                Assert.assertEquals(2, response.items.size)
+                Assert.assertEquals(700, response.totalByType[BudgetType.Приход.name])
+                Assert.assertEquals(0, response.totalByType[BudgetType.Расход.name])
+                Assert.assertTrue(response.items.all {
+                    it.authorFio.equals(author?.fio) and (it.authorCreateDateTime?.equals
+                        (author?.createTimestamp) == true)
+                })
+            }
+
+
+
+
+        RestAssured.given()
+            .queryParam("limit", 5)
+            .queryParam("offset", 0)
+            .queryParam("fio", "PUP")
+            .get("/budget/year/2020/stats")
+            .toResponse<BudgetYearStatsResponse>().let { response ->
+                println("${response.total} / ${response.items} / ${response.totalByType}")
+
+                Assert.assertEquals(2, response.total)
+                Assert.assertEquals(2, response.items.size)
+                Assert.assertEquals(700, response.totalByType[BudgetType.Приход.name])
+                Assert.assertEquals(0, response.totalByType[BudgetType.Расход.name])
+                Assert.assertTrue(response.items.all {
+                    it.authorFio.equals(author?.fio) and (it.authorCreateDateTime?.equals
+                        (author?.createTimestamp) == true)
+                })
+            }
+    }
+
+    @Test
+    fun testAuthorRecordsWithIncorrectPartOfFioRequested() {
+        addAuthorRecords()
+
+        RestAssured.given()
+            .queryParam("limit", 5)
+            .queryParam("offset", 0)
+            .queryParam("fio", "PUPS")
+            .get("/budget/year/2020/stats")
+            .toResponse<BudgetYearStatsResponse>().let { response ->
+                println("${response.total} / ${response.items} / ${response.totalByType}")
+
+                Assert.assertEquals(0, response.total)
+                Assert.assertEquals(0, response.items.size)
+                Assert.assertEquals(0, response.totalByType[BudgetType.Приход.name])
+                Assert.assertEquals(0, response.totalByType[BudgetType.Расход.name])
             }
     }
 

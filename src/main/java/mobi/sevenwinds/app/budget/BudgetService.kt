@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import mobi.sevenwinds.app.author.AuthorEntity
 import mobi.sevenwinds.app.author.AuthorTable
 import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upperCase
@@ -38,8 +38,8 @@ object BudgetService {
                 .limit(param.limit, param.offset)
             if (param.fio != null) {
                 query = query
-                    .adjustWhere { AuthorTable.fio.upperCase() eq param.fio.toUpperCase() }
-                totalQuery = totalQuery.adjustWhere { AuthorTable.fio.upperCase() eq param.fio.toUpperCase() }
+                    .adjustWhere { AuthorTable.fio.upperCase().like("${param.fio.toUpperCase()}%") }
+                totalQuery = totalQuery.adjustWhere { AuthorTable.fio.upperCase().like("${param.fio.toUpperCase()}%") }
 
             }
             val data = BudgetEntity.wrapRows(query).map { it.toBudgetAuthorRecord() }
@@ -49,7 +49,7 @@ object BudgetService {
             val total = totalQuery.count()
             for (value in BudgetType.values()) {
                 if (sumByType.get(value.name) == null) {
-                    sumByType[value.name] = 0;
+                    sumByType[value.name] = 0
                 }
             }
 
